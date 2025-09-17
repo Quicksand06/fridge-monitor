@@ -1,10 +1,14 @@
-use axum::{Router, routing::get};
+mod routes;
+
+use axum::Router;
 use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() {
     // build routes
-    let app = Router::new().route("/", get(root));
+    let app = Router::new()
+        .merge(routes::health::routes())
+        .merge(routes::fridge::routes());
 
     // address & port
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -15,8 +19,4 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
-}
-
-async fn root() -> &'static str {
-    "Hello, Axum!"
 }
