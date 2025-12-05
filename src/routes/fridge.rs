@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 pub fn routes() -> Router<PgPool> {
     Router::new().route("/fridge/items", get(get_items).post(store_item))
-        .route("fridge/items/:id", get(get_item))
+        .route("/fridge/items/{id}", get(get_item))
 }
 
 async fn get_items(State(pool): State<PgPool>) -> Result<Json<Vec<ItemResponse>>, (StatusCode, Json<ErrorResponse>)> {

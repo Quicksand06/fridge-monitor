@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct CreateItem {
@@ -8,7 +9,7 @@ pub struct CreateItem {
 
 #[derive(Serialize)]
 pub struct ItemResponse {
-    pub id: i32,
+    pub id: Uuid,
     pub name: String,
     pub barcode: String,
 }
