@@ -7,8 +7,13 @@ pub struct CreateItem {
 }
 
 #[derive(Serialize)]
-pub struct Item {
+pub struct ItemResponse {
     pub id: i32,
     pub name: String,
     pub barcode: String,
+}
+
+#[derive(Serialize)]
+pub struct ErrorResponse {
+    pub message: String,
 }

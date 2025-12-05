@@ -1,32 +1,32 @@
 version: "3.9"
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: rust_app
-    ports:
-      - "3000:3000"
-    environment:
-      PORT: 3000
-
-      # database settings
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USER: postgres
-      DATABASE_PASSWORD: Pa55word!
-      DATABASE_NAME: fridgedb
-
-      # optional RUST_LOG
-      RUST_LOG: info
-
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-    # restart policy (optional)
-    restart: unless-stopped
+#  app:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: rust_app
+#    ports:
+#      - "3000:3000"
+#    environment:
+#      PORT: 3000
+#
+#      # database settings
+#      DATABASE_HOST: postgres
+#      DATABASE_PORT: 5432
+#      DATABASE_USER: postgres
+#      DATABASE_PASSWORD: Pa55word!
+#      DATABASE_NAME: fridgedb
+#
+#      # optional RUST_LOG
+#      RUST_LOG: info
+#
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#
+#    # restart policy (optional)
+#    restart: unless-stopped
 
   postgres:
     image: postgres:16
@@ -34,9 +34,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: appuser
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: appdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Pa55word!
+      POSTGRES_DB: fridgeDb
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

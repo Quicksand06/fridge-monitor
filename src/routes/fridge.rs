@@ -1,26 +1,66 @@
+use crate::models::{CreateItem, ItemResponse, ErrorResponse};
+use axum::extract::{Path, State};
+use axum::http::StatusCode;
 use axum::{Json, Router, routing::get};
-use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
+use uuid::Uuid;
 
-pub fn routes() -> Router {
-    Router::new().route("/fridge", get(get_items).post(store_item))
+pub fn routes() -> Router<PgPool> {
+    Router::new().route("/fridge/items", get(get_items).post(store_item))
+        .route("fridge/items/:id", get(get_item))
 }
 
-async fn get_items() -> &'static str {
-    "List of items in the fridge"
+async fn get_items(State(pool): State<PgPool>) -> Result<Json<Vec<ItemResponse>>, (StatusCode, Json<ErrorResponse>)> {
+    let items = sqlx::query_as!(ItemResponse, r#"SELECT * FROM items"#)
+        .fetch_all(&pool)
+        .await
+        .map_err(|err| {
+            (StatusCode::INTERNAL_SERVER_ERROR ,
+             Json(ErrorResponse {
+                 message: format!("Database error: {}", err),
+             }))
+        })?;
+
+    Ok(Json(items))
 }
 
-async fn store_item(Json(input): Json<Input>) -> Json<Output> {
-    Json(Output {
-        echoed: input.barcode,
-    })
+async fn get_item(Path(id): Path<Uuid>,State(pool): State<PgPool>) -> Result<Json<ItemResponse>, (StatusCode, Json<ErrorResponse>)> {
+    let item = sqlx::query_as!(ItemResponse, r#"SELECT * FROM items WHERE id = $1"#, id)
+        .fetch_one(&pool)
+        .await
+        .map_err(|err|  match err {
+            sqlx::Error::RowNotFound => (StatusCode::NOT_FOUND, Json(ErrorResponse {
+                message: format!("Item not found: {}", err),
+            })),
+            other => (StatusCode::INTERNAL_SERVER_ERROR, Json(ErrorResponse {
+                message: format!("Database error: {}", other)
+            }))
+
+        })?;
+    Ok(Json(item))
 }
 
-#[derive(Deserialize)]
-struct Input {
-    barcode: String,
-}
+async fn store_item(
+    State(pool): State<PgPool>,
+    Json(input): Json<CreateItem>,
+) -> Result<Json<ItemResponse>, (StatusCode, Json<ErrorResponse>)> {
+    let command = sqlx::query_as!(
+        ItemResponse,
+        r#"insert into items (name, barcode)
+        values ($1, $2)
+        returning id, name, barcode
+        "#,
+        input.name,
+        input.barcode
+    )
+    .fetch_one(&pool)
+    .await
+    .map_err(|err| {
+        (StatusCode::INTERNAL_SERVER_ERROR ,
+         Json(ErrorResponse {
+            message: format!("Database error: {}", err),
+        }))
+    })?;
 
-#[derive(Serialize)]
-struct Output {
-    echoed: String,
+    Ok(Json(command))
 }
