@@ -6,18 +6,46 @@ use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
 use std::env;
 use std::net::SocketAddr;
+use tracing::error;
+use tracing::log::info;
+use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
 
-    let db_url = std::env::var("DATABASE_URL")?;
+    // set up logging
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env()) // respects RUST_LOG
+        .init();
+
+    info!("Starting the application...");
+
+    let db_url = env::var("DATABASE_URL")?;
 
     // Postgres pool
-    let db = PgPoolOptions::new()
+    let db = match PgPoolOptions::new()
         .max_connections(5)
         .connect(&db_url)
-        .await?;
+        .await
+    {
+        Ok(pool) => {
+            info!("Successfully connected to database");
+            pool
+        }
+        Err(e) => {
+            error!("Failed to connect to database: {e}");
+            std::process::exit(1);
+        }
+    };
+
+    // Run migrations automatically
+    if let Err(e) = sqlx::migrate!("./migrations").run(&db).await {
+        error!("Failed to run migrations: {}", e);
+        std::process::exit(1);
+    }
+
+    info!("Migrations applied successfully");
 
     // build routes
     let app = Router::<PgPool>::new()

@@ -6,10 +6,12 @@ edition = "2024"
 [dependencies]
 axum = "0.8.4"
 tokio = { version = "1.47.1", features = ["full"] }
-axum-server = "0.7.2"
+axum-server = "0.8.0"
 serde = { version = "1.0.225", features = ["derive"] }
-sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "uuid"] }
+sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "uuid", "migrate"] }
 dotenvy = "0.15"
 anyhow = "1.0.100"
 uuid = { version = "1.19.0", features = ["v4", "serde"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 

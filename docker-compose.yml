@@ -1,32 +1,28 @@
 version: "3.9"
 
 services:
-#  app:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    container_name: rust_app
-#    ports:
-#      - "3000:3000"
-#    environment:
-#      PORT: 3000
-#
-#      # database settings
-#      DATABASE_HOST: postgres
-#      DATABASE_PORT: 5432
-#      DATABASE_USER: postgres
-#      DATABASE_PASSWORD: Pa55word!
-#      DATABASE_NAME: fridgedb
-#
-#      # optional RUST_LOG
-#      RUST_LOG: info
-#
-#    depends_on:
-#      postgres:
-#        condition: service_healthy
-#
-#    # restart policy (optional)
-#    restart: unless-stopped
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fridge_monitor_app
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+
+      # database settings
+      DATABASE_URL: ${DATABASE_URL}
+
+      # optional RUST_LOG
+      RUST_LOG: info
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    # restart policy (optional)
+    restart: unless-stopped
 
   postgres:
     image: postgres:16
@@ -41,7 +37,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U appuser"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
