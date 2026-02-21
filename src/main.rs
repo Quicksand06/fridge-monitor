@@ -24,11 +24,7 @@ async fn main() -> anyhow::Result<()> {
     let db_url = env::var("DATABASE_URL")?;
 
     // Postgres pool
-    let db = match PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&db_url)
-        .await
-    {
+    let db = match PgPoolOptions::new().max_connections(5).connect(&db_url).await {
         Ok(pool) => {
             info!("Successfully connected to database");
             pool
@@ -59,14 +55,10 @@ async fn main() -> anyhow::Result<()> {
         .parse()
         .expect("PORT must be a number");
     let ip = env::var("HOST_IP").unwrap_or_else(|_| "0.0.0.0".to_string());
-    let addr: SocketAddr = format!("{}:{}", ip, port)
-        .parse()
-        .expect("Invalid IP or port");
+    let addr: SocketAddr = format!("{}:{}", ip, port).parse().expect("Invalid IP or port");
     println!("listening on http://{}", addr);
 
     // run server
-    axum_server::bind(addr)
-        .serve(app.into_make_service())
-        .await?;
+    axum_server::bind(addr).serve(app.into_make_service()).await?;
     Ok(())
 }

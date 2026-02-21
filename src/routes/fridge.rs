@@ -11,9 +11,7 @@ pub fn routes() -> Router<PgPool> {
         .route("/fridge/items/{id}", get(get_item))
 }
 
-async fn get_items(
-    State(pool): State<PgPool>,
-) -> Result<Json<Vec<ItemResponse>>, (StatusCode, Json<ErrorResponse>)> {
+async fn get_items(State(pool): State<PgPool>) -> Result<Json<Vec<ItemResponse>>, (StatusCode, Json<ErrorResponse>)> {
     let items = sqlx::query_as::<_, ItemResponse>(r#"SELECT * FROM items"#)
         .fetch_all(&pool)
         .await
@@ -29,10 +27,7 @@ async fn get_items(
     Ok(Json(items))
 }
 
-async fn get_item(
-    Path(id): Path<Uuid>,
-    State(pool): State<PgPool>,
-) -> Result<Json<ItemResponse>, (StatusCode, Json<ErrorResponse>)> {
+async fn get_item(Path(id): Path<Uuid>, State(pool): State<PgPool>) -> Result<Json<ItemResponse>, (StatusCode, Json<ErrorResponse>)> {
     let item = sqlx::query_as::<_, ItemResponse>(r#"SELECT * FROM items WHERE id = $1"#)
         .bind(id)
         .fetch_one(&pool)
@@ -54,10 +49,7 @@ async fn get_item(
     Ok(Json(item))
 }
 
-async fn store_item(
-    State(pool): State<PgPool>,
-    Json(input): Json<CreateItem>,
-) -> Result<Json<ItemResponse>, (StatusCode, Json<ErrorResponse>)> {
+async fn store_item(State(pool): State<PgPool>, Json(input): Json<CreateItem>) -> Result<Json<ItemResponse>, (StatusCode, Json<ErrorResponse>)> {
     let command = sqlx::query_as::<_, ItemResponse>(
         r#"insert into items (name, barcode)
         values ($1, $2)
